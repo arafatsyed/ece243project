@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-	
+#include <math.h>
 void set_A9_IRQ_stack ();
 void config_GIC ();
 void config_interval_timer ();
@@ -17,7 +17,7 @@ void init_game();
 
 
 struct Basketball{
-	int dy,dx, x, y, prevX, prevY;
+	int dy,dx, x, y, prevX, prevY, startX,startY;
 };
 struct Net{
 	int x, y, prevX, prevY;
@@ -103,7 +103,9 @@ struct Game{
 #define GAMESTATE_SCORE 7
 #define GAMESTATE_DIFFICULTY 8
 #define GAMESTATE_END -1
-
+#define ballSpawnX 37
+#define ballSpawnY 140
+#define ballDiameter 15
 // Begin main.c 
 
  // global variable
@@ -112,6 +114,24 @@ struct Game game;
 
 //backgrounds to use
 const uint16_t testscreen[240][320] ={0};
+const uint16_t basketballModel[15][15] = {
+	{51168,51168,51168,51168,51168,0,0,0,0,0,51168,51168,51168,51168,51168},
+	{51168,51168,51168,0,0,64164,64164,0,64164,64164,0,0,51168,51168,51168},
+	{51168,51168,0,64164,64164,64164,64164,0,64164,64164,64164,64164,0,51168,51168},
+	{51168,0,0,64164,64164,64164,64164,0,64164,64164,64164,64164,0,0,51168},
+	{51168,0,64164,0,64164,64164,64164,0,64164,64164,64164,0,64164,0,51168},
+	{0,64164,64164,64164,0,64164,64164,0,64164,64164,0,64164,64164,0,0},
+	{0,64164,64164,64164,64164,0,64164,0,64164,0,64164,64164,64164,64164,0},
+	{0,0,64164,64164,64164,64164,0,0,0,64164,64164,64164,64164,0,0},
+	{0,64164,0,0,0,0,0,0,0,0,0,0,0,64164,0},
+	{0,64164,64164,64164,64164,0,64164,0,64164,0,64164,64164,64164,64164,0},
+	{51168,0,64164,64164,0,64164,64164,0,64164,64164,0,64164,64164,0,51168},
+	{51168,0,64164,0,64164,64164,64164,0,64164,64164,64164,0,64164,0,51168},
+	{51168,51168,0,64164,64164,64164,64164,0,64164,64164,64164,64164,0,51168,51168},
+	{51168,51168,51168,0,0,64164,64164,0,64164,0,0,0,51168,51168,51168},
+	{51168,51168,51168,51168,51168,0,0,0,0,0,51168,51168,51168,51168,51168},
+
+};
 
 int main(void)
 {	
@@ -128,17 +148,6 @@ int main(void)
     // declare other variables(not shown)
     // initialize location and direction of rectangles(not shown)
 	
-	int x_box[NUM_BOXES];
-	int y_box[NUM_BOXES];
-	int dx_box[NUM_BOXES];
-	int dy_box[NUM_BOXES];
-	int colour_box[NUM_BOXES];
-	
-				//printf ("Decimals: %d \n", dx_box[0]);
-	dy_box[0] = -15;
-	dx_box[0] = 10;
-	y_box[0] = RESOLUTION_Y - 80;
-	x_box[0] = 20;
    	
 	/* set front pixel buffer to start of FPGA On-chip memory */
     *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
@@ -153,19 +162,33 @@ int main(void)
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 	clear_screen();
 	
+	double velocity = 18.5;
+	double angle = 50;
+	
+	angle = angle*3.1415/180.0;
+	
+    game.basketball.dy = (int) -1*velocity*sin(angle);
+	game.basketball.dx = (int) velocity*cos(angle);
 	int count =0;
 	while (1)
     {	
 					//printf ("old: %d \n", x_box[0]);
         /* Erase any boxes and lines that were drawn in the last iteration */
 		if(count !=0)
-			for(int i =0; i<NUM_BOXES; i++){
-				plot_box(x_box[i]-dx_box[i],y_box[i]-dy_box[i],BLACK);
-				//draw_line(x_box[i]-dx_box[i],y_box[i]-dy_box[i], x_box[(i+1)%NUM_BOXES]-dx_box[(i+1)%NUM_BOXES],y_box[(i+1)%NUM_BOXES]-dy_box[(i+1)%NUM_BOXES], BLACK);
-				//printf ("Decimals: %d \n", (i+1)%NUM_BOXES);
+			for(int y=game.basketball.prevY;y<game.basketball.prevY+ballDiameter;y++){
+
+				for(int x=game.basketball.prevX;x<game.basketball.prevX+ballDiameter;x++){
+
+					
+					plot_pixel(x,y,BLACK);
+				
+
+				}
+
 			}
+			
 		//update directions
-		for(int i =0; i<NUM_BOXES; i++){
+		/*for(int i =0; i<NUM_BOXES; i++){
 			if (x_box[i] >= RESOLUTION_X-2)
 				dx_box[i]=-1;
 			if (x_box[i] <= 0)
@@ -174,22 +197,34 @@ int main(void)
 				dy_box[i] = -1;
 			if (y_box[i] <= 0)
 				dy_box[i] =1;
-		}
+		}*/
 		int f = 50000*2;
 		while(f !=0){
 			f--;
 		}
-		dy_box[0] = dy_box[0] + 1;
+		
+		game.basketball.dy+=1;
+		
 		//update positions
-		for(int i =0; i<NUM_BOXES; i++){
-			x_box[i] = x_box[i] +dx_box[i];
-			y_box[i] = y_box[i] +dy_box[i];
-		}
-			//printf ("Updated: %d ", x_box[0]);
+		
+		game.basketball.prevX= game.basketball.x;
+		game.basketball.prevY=game.basketball.y;
+		game.basketball.x+=game.basketball.dx;
+		game.basketball.y+=game.basketball.dy;
+			
         // code for drawing the boxes and lines (not shown)
-		for(int i =0; i<NUM_BOXES; i++){
-			plot_box(x_box[i],y_box[i],RED);
-			//draw_line(x_box[i],y_box[i], x_box[(i+1)%NUM_BOXES],y_box[(i+1)%NUM_BOXES], colour_box[i]);
+		
+		for(int y=game.basketball.y;y<game.basketball.y+ballDiameter;y++){
+
+			for(int x=game.basketball.x;x<game.basketball.x+ballDiameter;x++){
+
+				if(basketballModel[y-game.basketball.y][x-game.basketball.x] != 51168){
+					plot_pixel(x,y,basketballModel[y-game.basketball.y][x-game.basketball.x]);
+					
+				}
+
+			}
+
 		}
         // code for updating the locations of boxes (not shown)
 		
@@ -204,8 +239,8 @@ int main(void)
 void init_game(){
 	game.gameState = 0;
 	
-	game.basketball.x=0;game.basketball.y= 0; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
-
+	game.basketball.x=ballSpawnX;game.basketball.y= ballSpawnY; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
+	game.basketball.startX = ballSpawnX; game.basketball.startY=ballSpawnY;
 	
 	game.net.x=0;game.net.y=0;game.net.prevX=0; game.net.prevY=0;
 	
