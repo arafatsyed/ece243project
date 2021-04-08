@@ -1,6 +1,6 @@
 //FUNCTION HEADERS
 //*********************************
-#include <stdio.h>
+clude <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 	
