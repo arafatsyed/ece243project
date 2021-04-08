@@ -31,7 +31,7 @@ void config_interrupt(int N, int CPU_target);
 #define TIMER_BASE            0xFF202000
 #define PIXEL_BUF_CTRL_BASE   0xFF203020
 #define CHAR_BUF_CTRL_BASE    0xFF203030
-
+//sdsdf
 /* VGA colors */
 #define WHITE 0xFFFF
 #define YELLOW 0xFFE0
