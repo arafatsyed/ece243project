@@ -1,0 +1,11 @@
+		for(int y =150; y<230;y++){
+			
+			for(int x=0;x<70;x++){
+				if(kobeShootingModel[y-150][x]!=51168)
+				plot_pixel(x,y,kobeShootingModel[y-150][x]);
+			
+			
+			}
+		
+		
+		}
