@@ -14,13 +14,18 @@ void config_PS2();
 void keyboard_ISR();
 void config_interrupt(int N, int CPU_target);
 void init_game();
-
+void eraseVisual(int count);
+void updateVisual();
+bool drawVisual();
+void delay(int delayT);
+void callbackVisual(double velocityInitial, double theta);
 
 struct Basketball{
 	int dy,dx, x, y, prevX, prevY, startX,startY;
 };
 struct Net{
 	int x, y, prevX, prevY;
+	bool score;
 };
 
 struct Player{
@@ -103,9 +108,10 @@ struct Game{
 #define GAMESTATE_SCORE 7
 #define GAMESTATE_DIFFICULTY 8
 #define GAMESTATE_END -1
-#define ballSpawnX 37
-#define ballSpawnY 140
-#define ballDiameter 15
+#define BALL_SPAWN_X 37
+#define BALL_SPAWN_Y 140
+#define BALL_DIAMETER 15
+#define DELAY 100000
 // Begin main.c 
 
  // global variable
@@ -162,8 +168,11 @@ int main(void)
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 	clear_screen();
 	
-	double velocity = 18.5;
-	double angle = 50;
+	callbackVisual(10.5,60);
+}
+void callbackVisual(double velocityInitial, double theta){
+	double velocity = velocityInitial;
+	double angle = theta;
 	
 	angle = angle*3.1415/180.0;
 	
@@ -172,77 +181,101 @@ int main(void)
 	int count =0;
 	while (1)
     {	
-					//printf ("old: %d \n", x_box[0]);
-        /* Erase any boxes and lines that were drawn in the last iteration */
-		if(count !=0)
-			for(int y=game.basketball.prevY;y<game.basketball.prevY+ballDiameter;y++){
-
-				for(int x=game.basketball.prevX;x<game.basketball.prevX+ballDiameter;x++){
-
-					
-					plot_pixel(x,y,BLACK);
-				
-
-				}
-
-			}
+	
+			//erase
+		eraseVisual(count);
 			
 		//update directions
-		/*for(int i =0; i<NUM_BOXES; i++){
-			if (x_box[i] >= RESOLUTION_X-2)
-				dx_box[i]=-1;
-			if (x_box[i] <= 0)
-				dx_box[i]=1;
-			if(y_box[i] >= RESOLUTION_Y-2)
-				dy_box[i] = -1;
-			if (y_box[i] <= 0)
-				dy_box[i] =1;
-		}*/
-		int f = 50000*2;
-		while(f !=0){
-			f--;
-		}
+		updateVisual();
 		
-		game.basketball.dy+=1;
+		
+		delay(DELAY);
+		
 		
 		//update positions
-		
-		game.basketball.prevX= game.basketball.x;
-		game.basketball.prevY=game.basketball.y;
-		game.basketball.x+=game.basketball.dx;
-		game.basketball.y+=game.basketball.dy;
+		if(!drawVisual()){
+			break;
+		}
 			
-        // code for drawing the boxes and lines (not shown)
 		
-		for(int y=game.basketball.y;y<game.basketball.y+ballDiameter;y++){
+		count++;
+	}
+}
+bool drawVisual(){
+	game.basketball.prevX= game.basketball.x;
+	game.basketball.prevY=game.basketball.y;
+	game.basketball.x+=game.basketball.dx;
+	game.basketball.y+=game.basketball.dy;
+	if(game.basketball.dy == 0 && game.basketball.dx ==0 && game.basketball.y +BALL_DIAMETER>=RESOLUTION_Y ){
+		game.basketball.y = game.basketball.startY;
+		game.basketball.x = game.basketball.startX;
+		game.gameState=GAMESTATE_SCORE;
+		return FALSE;
+	}	
+	// code for drawing the boxes and lines (not shown)
+	
+	for(int y=game.basketball.y;y<game.basketball.y+BALL_DIAMETER;y++){
 
-			for(int x=game.basketball.x;x<game.basketball.x+ballDiameter;x++){
+		for(int x=game.basketball.x;x<game.basketball.x+BALL_DIAMETER;x++){
 
-				if(basketballModel[y-game.basketball.y][x-game.basketball.x] != 51168){
+			if(basketballModel[y-game.basketball.y][x-game.basketball.x] != 51168){
+				if(x>=0 && x<=RESOLUTION_X && y >= 0 && y<=RESOLUTION_Y){
 					plot_pixel(x,y,basketballModel[y-game.basketball.y][x-game.basketball.x]);
-					
+				}
+			}
+
+		}
+
+	}
+	// code for updating the locations of boxes (not shown)
+	
+	
+	wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+	pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
+	return TRUE;
+}
+void delay(int delayT){
+	int f = delayT;
+	while(f !=0){
+		f--;
+	}
+}
+void updateVisual(){
+	if (game.basketball.x >= RESOLUTION_X-BALL_DIAMETER)
+		game.basketball.dx= -1* abs(game.basketball.dx/2);
+	if (game.basketball.x <= 0)
+		game.basketball.dx= abs(game.basketball.dx/2);
+	if(game.basketball.y >= RESOLUTION_Y-BALL_DIAMETER){
+		game.basketball.dy = -1*abs(game.basketball.dy/2);
+		game.basketball.dx = 0;
+	}
+	if(game.basketball.y +BALL_DIAMETER<RESOLUTION_Y){
+		game.basketball.dy+=1;
+	}
+}
+void eraseVisual(int count){
+	if(count !=0){
+		for(int y=game.basketball.prevY;y<game.basketball.prevY+BALL_DIAMETER;y++){
+
+			for(int x=game.basketball.prevX;x<game.basketball.prevX+BALL_DIAMETER;x++){
+
+				if(x>=0 && x<=RESOLUTION_X && y >= 0 && y<=RESOLUTION_Y){
+					plot_pixel(x,y,BLACK);
 				}
 
 			}
 
 		}
-        // code for updating the locations of boxes (not shown)
-		
-		
-        wait_for_vsync(); // swap front and back buffers on VGA vertical sync
-        pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
-    	count++;
 	}
-}
-
+}	
 
 void init_game(){
 	game.gameState = 0;
 	
-	game.basketball.x=ballSpawnX;game.basketball.y= ballSpawnY; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
-	game.basketball.startX = ballSpawnX; game.basketball.startY=ballSpawnY;
+	game.basketball.x=BALL_SPAWN_X;game.basketball.y= BALL_SPAWN_Y; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
+	game.basketball.startX = BALL_SPAWN_X; game.basketball.startY=BALL_SPAWN_Y;
 	
-	game.net.x=0;game.net.y=0;game.net.prevX=0; game.net.prevY=0;
+	game.net.x=0;game.net.y=0;game.net.prevX=0; game.net.prevY=0; game.net.score=false;
 	
 	game.player.x=0; game.player.y=0;game.player.prevX=0;game.player.prevY=0;game.player.playerID=0;
 	
