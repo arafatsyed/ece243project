@@ -18,8 +18,8 @@ struct PowerBar{
 
 struct AimBar{
 	int x,y, prevX, prevY;
-	int aimBar[10];
-}
+	double angle;
+};
 
 struct Game{
 	struct Basketball basketball;
@@ -28,5 +28,6 @@ struct Game{
 	struct PowerBar powerBar;
 	struct AimBar aimBar;
 	const uint16_t background[240][320];
+	int gameState;
 };
 

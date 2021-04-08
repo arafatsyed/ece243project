@@ -13,10 +13,45 @@ void disable_A9_interrupts();
 void config_PS2();
 void keyboard_ISR();
 void config_interrupt(int N, int CPU_target);
+void init_game();
 
+
+struct Basketball{
+	int dy,dx, x, y, prevX, prevY;
+};
+struct Net{
+	int x, y, prevX, prevY;
+};
+
+struct Player{
+	int x, y, prevX,prevY, playerID;
+	
+};
+
+struct PowerBar{
+	int xSlider,ySlider, prevXSlider, prevYSlider, width, height, xFixed, yFixed;
+	int powerArray[10];
+};
+
+struct AimBar{
+	int xEnd,yEnd, prevXEnd, prevYEnd, xFixed, yFixed;
+	int rightX,rightY;
+	int topX, topY;
+	double angle;
+};
+struct Game{
+	struct Basketball basketball;
+	struct Net net;
+	struct Player player;
+	struct PowerBar powerBar;
+	struct AimBar aimBar;
+	uint16_t background[240][320];
+	int gameState;
+};
 //****************************************
 //END FUNCTION  HEADERS 
 /* This files provides address values that exist in the system */
+
 
 #define SDRAM_BASE            0xC0000000
 #define FPGA_ONCHIP_BASE      0xC8000000
@@ -58,17 +93,29 @@ void config_interrupt(int N, int CPU_target);
 #define FALSE 0
 #define TRUE 1
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
+#define GAMESTATE_INTRO 0
+#define GAMESTATE_CHARACTER 1
+#define GAMESTATE_INSTRUCTION 2
+#define GAMESTATE_ANGLE 3
+#define GAMESTATE_POWER 4
+#define GAMESTATE_TIMING 5
+#define GAMESTATE_VISUAL 6
+#define GAMESTATE_SCORE 7
+#define GAMESTATE_DIFFICULTY 8
+#define GAMESTATE_END -1
 
-// Begin part3.c code for Lab 7
+// Begin main.c 
 
+ // global variable
+volatile int pixel_buffer_start;
+struct Game game;
 
-volatile int pixel_buffer_start; // global variable
+//backgrounds to use
+const uint16_t testscreen[240][320] ={0};
 
 int main(void)
-{
+{	
+	init_game();
 	set_A9_IRQ_stack();
 	
 	config_GIC();
@@ -152,6 +199,40 @@ int main(void)
     	count++;
 	}
 }
+
+
+void init_game(){
+	game.gameState = 0;
+	
+	game.basketball.x=0;game.basketball.y= 0; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
+
+	
+	game.net.x=0;game.net.y=0;game.net.prevX=0; game.net.prevY=0;
+	
+	game.player.x=0; game.player.y=0;game.player.prevX=0;game.player.prevY=0;game.player.playerID=0;
+	
+	game.powerBar.xSlider=0;game.powerBar.ySlider=0; game.powerBar.prevXSlider=0; game.powerBar.prevYSlider=0; game.powerBar.width=0; 
+	game.powerBar.height=0;game.powerBar.xFixed=0;game.powerBar.yFixed=0;
+	
+	for (int i = 0; i<10 ; i++){
+		game.powerBar.powerArray[i] = (i+1)*5;
+	}
+	
+	game.aimBar.xEnd=0;game.aimBar.yEnd=0;game.aimBar.prevXEnd=0; game.aimBar.prevYEnd=0; game.aimBar.xFixed=0; game.aimBar.yFixed=0;game.aimBar.rightX=0;
+	game.aimBar.rightY=0; game.aimBar.topX=0; game.aimBar.topY=0;game.aimBar.angle=0.0;
+	
+	for (int x=0 ; x < RESOLUTION_X; x++)
+	{
+		for (int y=0 ; y < RESOLUTION_Y; y++)
+		{
+			game.background[x][y] = testscreen[x][y];
+		}
+	}
+}
+
+
+
+
 void plot_box(int x, int y, short int line_color){
 	plot_pixel(x,y,line_color);
 	plot_pixel(x+1,y,line_color);
@@ -372,4 +453,6 @@ void keyboard_ISR(){
 	
 	return;
 }	
+	
+	
 	
