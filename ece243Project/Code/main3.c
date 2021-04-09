@@ -593,8 +593,8 @@ int main(void)
 		}
 	}
 	while(1){
-	for(int theta = 40; theta < 71; theta+=10){
-		for(int velocity = 19 ;velocity < 22.1; velocity++){
+	for(int theta = 40; theta < 80; theta+=10){
+		for(int velocity = 16 ;velocity < 22.1; velocity++){
 			callbackVisual(velocity,theta);
 			eraseVisual(1);		
 		}
@@ -606,15 +606,15 @@ int main(void)
 }
 void callbackScore(){
 	
-	if( game.basketball.prevY+BALL_DIAMETER/2<=game.net.y+NET_OFFSET_Y && game.basketball.x +BALL_DIAMETER/2>= game.net.x && game.basketball.y+ BALL_DIAMETER/2>= game.net.y+BALL_DIAMETER){
-		double dx = game.basketball.x-game.basketball.prevX;
+	if( game.basketball.prevY+BALL_DIAMETER/2<=game.net.y+NET_OFFSET_Y && game.basketball.x +BALL_DIAMETER/2>= game.net.x && game.basketball.y+ BALL_DIAMETER/2>= game.net.y+BALL_DIAMETER && game.basketball.x +BALL_DIAMETER/2<= game.net.x + NET_OFFSET_X + BALL_DIAMETER*1.5 ){
+		double dx = game.basketball.x -game.basketball.prevX;
 		double dy = game.basketball.y-game.basketball.prevY;
 		double m;
 		if (dx != 0 && dy!=0){
 			m = dy/dx;
-			double intersectX = (game.net.y+NET_OFFSET_Y - game.basketball.prevY+ m*game.basketball.prevX)/m;
+			double intersectX = (game.net.y+NET_OFFSET_Y - (game.basketball.prevY+BALL_DIAMETER/2)+ m*game.basketball.prevX+BALL_DIAMETER/2)/m;
 
-				if (intersectX< game.net.x+NET_OFFSET_X+NET_DIAMETER/2.0 && intersectX> game.net.x+NET_OFFSET_X-NET_DIAMETER/2.0){
+				if (intersectX< game.net.x+NET_OFFSET_X+NET_DIAMETER/2.0 -1 && intersectX> game.net.x+NET_OFFSET_X-NET_DIAMETER/2.0 + 1){
 					game.basketball.dy = 1;
 					
 					if(game.basketball.dx < 0){
@@ -623,10 +623,10 @@ void callbackScore(){
 						game.basketball.dx =1;
 					}
 					game.net.score =true;
-					draw_line( game.basketball.prevX, game.basketball.prevY,game.basketball.x,game.basketball.y,GREEN);
+					draw_line( game.basketball.prevX+BALL_DIAMETER/2, game.basketball.prevY +BALL_DIAMETER/2,(int)intersectX,game.net.y+NET_OFFSET_Y ,GREEN);
 					game.basketball.x = game.net.x+NET_OFFSET_X - BALL_DIAMETER/2;
 					game.basketball.y = game.net.y+NET_OFFSET_Y - BALL_DIAMETER/2;
-					printf("score %f %f %d %d %d %d",  intersectX, m ,game.basketball.x, game.basketball.prevX,game.basketball.y, game.basketball.prevY );
+					printf("score %f %f %d %d %d %d",  intersectX, m ,game.basketball.x+BALL_DIAMETER/2, game.basketball.prevX+BALL_DIAMETER/2,game.basketball.y+BALL_DIAMETER/2, game.basketball.prevY+BALL_DIAMETER/2 );
 				}
 		}
 		// check if midpoint of ball crosses x axis of net
@@ -664,7 +664,7 @@ void callbackVisual(double velocityInitial, double theta){
 		
 		
 		int f = DELAY;
-		f=1000;
+		f=0;
 		while(f !=0){
 			f--;
 		}
@@ -726,7 +726,7 @@ void delay(int delayT){
 }
 void updateVisual(){
 	if (game.basketball.x >= RESOLUTION_X-BALL_DIAMETER)
-		game.basketball.dx= -1* abs(game.basketball.dx/2);
+		game.basketball.dx= -1* abs(game.basketball.dx/1.5);
 	if (game.basketball.x <= 0)
 		game.basketball.dx= abs(game.basketball.dx/2);
 	if(game.basketball.y >= RESOLUTION_Y-BALL_DIAMETER){
