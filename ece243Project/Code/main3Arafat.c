@@ -1863,25 +1863,57 @@ void callBackPower(){
 	
   	volatile int * PS2_ptr = (int *) 0xFF200100;  // PS/2 port address
 
-	int PS2_data, RVALID,RAVAIL;
-	
-	// while(1){
-						
-		// PS2_data = *(PS2_ptr);
-		// RAVAIL = PS2_data & 0xFFFF0000;
-						
-		// if(RAVAIL == 0){
-			// PS2_data = *(PS2_ptr);
-			// break; 
-							 
-		// }
-						
-						
-	// }
-	
+	int PS2_data, RVALID;	
 	while(1){
 		
-			
+		PS2_data = *(PS2_ptr);	// read the Data register in the PS/2 port
+		RVALID = (PS2_data & 0x8000);	// extract the RVALID field
+		if (RVALID != 0)
+		{
+			/* always save the last three bytes received */
+			byte1 = byte2;
+			byte2 = byte3;
+			byte3 = PS2_data & 0xFF;
+		}
+		if(byte3 == 0x29){ //if pressed and released spacebar, switch game states
+				
+			if(byte2 == 0xf0){
+					
+				if(byte1==0x29){
+											
+					game.gameState = GAMESTATE_TIMING;
+						//sets angle
+					double heightRatio = (double)((POWERBAR_END_y -1) - game.powerBar.ySlider)/(double)game.powerBar.height;
+					double adjustment = 8 * heightRatio;
+						
+					game.powerBar.velocity = 14 + (int) adjustment;
+					
+					*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+															// back buffer
+						/* now, swap the front/back buffers, to set the front buffer location */
+					wait_for_vsync();
+						/* initialize a pointer to the pixel buffer, used by drawing functions */
+					pixel_buffer_start = *pixel_ctrl_ptr;
+						//clear_screen(); // pixel_buffer_start points to the pixel buffer
+						
+					draw_line(game.powerBar.prevXSlider, game.powerBar.prevYSlider, game.powerBar.prevXSlider + 7, game.powerBar.prevYSlider, game.powerBar.powerBarArray[(game.powerBar.prevYSlider-POWERBAR_START_y)][(game.powerBar.prevXSlider+7) - (POWERBAR_START_X) -1]  );
+					draw_line(game.powerBar.xSlider, game.powerBar.ySlider, game.powerBar.xSlider + 7, game.powerBar.ySlider, 0 );
+						/* set back pixel buffer to start of SDRAM memory */
+					*(pixel_ctrl_ptr + 1) = 0xC0000000;
+					pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+					
+					draw_line(game.powerBar.prevXSlider, game.powerBar.prevYSlider, game.powerBar.prevXSlider + 7, game.powerBar.prevYSlider, game.powerBar.powerBarArray[(game.powerBar.prevYSlider-POWERBAR_START_y)][(game.powerBar.prevXSlider+7) - (POWERBAR_START_X) -1]  );
+					draw_line(game.powerBar.xSlider, game.powerBar.ySlider, game.powerBar.xSlider + 7, game.powerBar.ySlider, 0 );
+					
+					game.powerBar.ySlider = POWERBAR_END_y -1;	
+					
+					return;						
+					}	
+				}
+				
+			}	
+	
+		
 		if(count!=0){
 			
 			eraseSlider();
@@ -1910,67 +1942,55 @@ void callBackPower(){
 		drawSlider();
 		
 		//delay loop
-		int f = 10000;
+		int f= 10000;
 		while(f!=0){
 			
 		PS2_data = *(PS2_ptr);	// read the Data register in the PS/2 port
 		RVALID = (PS2_data & 0x8000);	// extract the RVALID field
-		if (RVALID != 0)
-		{
+			if (RVALID != 0)
+			{
 				/* always save the last three bytes received */
-			byte3 = PS2_data & 0xFF;
-		}			
-			if(byte3 == 0x22){ //if pressed and released spacebar, switch game states
+				byte1 = byte2;
+				byte2 = byte3;
+				byte3 = PS2_data & 0xFF;
+			}			
+			if(byte3 == 0x29){ //if pressed and released spacebar, switch game states
 				
-				
+				if(byte2 == 0xf0){
 					
-					//eraseSlider();
-					//drawSlider();						
-					game.gameState = GAMESTATE_TIMING;
+					if(byte1==0x29){
+											
+						game.gameState = GAMESTATE_TIMING;
 						//sets angle
 						
-					double heightRatio = (double)((POWERBAR_END_y -1) - game.powerBar.ySlider)/(double)game.powerBar.height;
-					double adjustment = 8 * heightRatio;
+						double heightRatio = (double)((POWERBAR_END_y -1) - game.powerBar.ySlider)/(double)game.powerBar.height;
+						double adjustment = 8 * heightRatio;
 						
-					game.powerBar.velocity = 14 + (int) adjustment;
+						game.powerBar.velocity = 14 + (int) adjustment;
 						
 						
-					
-					*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+						printf("Velocity %d", game.powerBar.velocity);
+						*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
 															// back buffer
-					/* now, swap the front/back buffers, to set the front buffer location */
-					wait_for_vsync();
+						/* now, swap the front/back buffers, to set the front buffer location */
+						wait_for_vsync();
 						/* initialize a pointer to the pixel buffer, used by drawing functions */
-					pixel_buffer_start = *pixel_ctrl_ptr;
-
-					//eraseSlider();
-					//drawSlider();
+						pixel_buffer_start = *pixel_ctrl_ptr;
+						//clear_screen(); // pixel_buffer_start points to the pixel buffer
+						
+						draw_line(game.powerBar.prevXSlider, game.powerBar.prevYSlider, game.powerBar.prevXSlider + 7, game.powerBar.prevYSlider, game.powerBar.powerBarArray[(game.powerBar.prevYSlider-POWERBAR_START_y)][(game.powerBar.prevXSlider+7) - (POWERBAR_START_X) -1]  );
+						draw_line(game.powerBar.xSlider, game.powerBar.ySlider, game.powerBar.xSlider + 7, game.powerBar.ySlider, 0 );
 						/* set back pixel buffer to start of SDRAM memory */
-					*(pixel_ctrl_ptr + 1) = 0xC0000000;
-					pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
-					
-					//eraseSlider();
-					//drawSlider();
-					
-					game.powerBar.ySlider = POWERBAR_END_y -1;	
+						*(pixel_ctrl_ptr + 1) = 0xC0000000;
+						pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+						//clear_screen();
+						draw_line(game.powerBar.prevXSlider, game.powerBar.prevYSlider, game.powerBar.prevXSlider + 7, game.powerBar.prevYSlider, game.powerBar.powerBarArray[(game.powerBar.prevYSlider-POWERBAR_START_y)][(game.powerBar.prevXSlider+7) - (POWERBAR_START_X) -1]  );
+						draw_line(game.powerBar.xSlider, game.powerBar.ySlider, game.powerBar.xSlider + 7, game.powerBar.ySlider, 0 );
+						game.powerBar.ySlider = POWERBAR_END_y -1;	
 						
-					while(1){
-						
-						PS2_data = *(PS2_ptr);
-						RAVAIL = PS2_data & 0xFFFF0000;
-						
-						if(RAVAIL == 0){
-							PS2_data = *(PS2_ptr);
-							return;
-							
-						}
-						
-						
+						return;						
 					}	
-					
-					return;						
-						
-				
+				}
 				
 			}			
 			f--;
@@ -2070,7 +2090,7 @@ void callBackAngle(){
 	
   	volatile int * PS2_ptr = (int *) 0xFF200100;  // PS/2 port address
 
-	int PS2_data, RVALID,RAVAIL;
+	int PS2_data, RVALID;
 	
 	int count =0;
 	int angleCounter = 0;
@@ -2082,6 +2102,49 @@ void callBackAngle(){
 		
 		
 		
+		PS2_data = *(PS2_ptr);	// read the Data register in the PS/2 port
+		RVALID = (PS2_data & 0x8000);	// extract the RVALID field
+		if (RVALID != 0)
+		{
+			/* always save the last three bytes received */
+			byte1 = byte2;
+			byte2 = byte3;
+			byte3 = PS2_data & 0xFF;
+		}
+
+		if(byte3 == 0x29){ //if pressed and released spacebar, switch game states
+			
+			if(byte2 == 0xf0){
+				
+				if(byte1==0x29){
+										
+				game.gameState = GAMESTATE_POWER;
+					//sets angle
+				game.aimBar.angle = game.aimBar.angleArray[angleCounter];
+				*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+													// back buffer
+				/* now, swap the front/back buffers, to set the front buffer location */
+				wait_for_vsync();
+				/* initialize a pointer to the pixel buffer, used by drawing functions */
+				pixel_buffer_start = *pixel_ctrl_ptr;
+				//clear_screen(); // pixel_buffer_start points to the pixel buffer
+				
+				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
+				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
+				/* set back pixel buffer to start of SDRAM memory */
+				*(pixel_ctrl_ptr + 1) = 0xC0000000;
+				pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+				//clear_screen();
+				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
+				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
+				
+				
+				
+				return;
+				}	
+			}
+			
+		}
 			
 		if(count!=0){
 			
@@ -2122,51 +2185,39 @@ void callBackAngle(){
 			if (RVALID != 0)
 			{
 				/* always save the last three bytes received */
+				byte1 = byte2;
+				byte2 = byte3;
 				byte3 = PS2_data & 0xFF;
-			}
-			
-			if(byte3 == 0x1A){ //if pressed and released spacebar, switch game states
+			}			
+			if(byte3 == 0x29){ //if pressed and released spacebar, switch game states
 				
-				
+				if(byte2 == 0xf0){
 					
-					
+					if(byte1==0x29){
 											
-				game.gameState = GAMESTATE_POWER;
-				//sets angle
-				game.aimBar.angle = game.aimBar.angleArray[angleCounter];
-				*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+						game.gameState = GAMESTATE_POWER;
+						//sets angle
+						game.aimBar.angle = game.aimBar.angleArray[angleCounter];
+						*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
 															// back buffer
-				/* now, swap the front/back buffers, to set the front buffer location */
-				wait_for_vsync();
+						/* now, swap the front/back buffers, to set the front buffer location */
+						wait_for_vsync();
 						/* initialize a pointer to the pixel buffer, used by drawing functions */
-				pixel_buffer_start = *pixel_ctrl_ptr;
-				//clear_screen(); // pixel_buffer_start points to the pixel buffer
+						pixel_buffer_start = *pixel_ctrl_ptr;
+						//clear_screen(); // pixel_buffer_start points to the pixel buffer
 						
-				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
-				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
-				/* set back pixel buffer to start of SDRAM memory */
-				*(pixel_ctrl_ptr + 1) = 0xC0000000;
-				pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
-				//clear_screen();
-				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
-				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
-				
-				while(1){
+						draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
+						draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
+						/* set back pixel buffer to start of SDRAM memory */
+						*(pixel_ctrl_ptr + 1) = 0xC0000000;
+						pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+						//clear_screen();
+						draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
+						draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
 						
-					PS2_data = *(PS2_ptr);
-					RAVAIL = PS2_data & 0xFFFF0000;
-						
-					if(RAVAIL == 0){
-						return; 
-							
-					}
-						
-						
-				}				
-					
-				return;						
-					
-				
+						return;						
+					}	
+				}
 				
 			}			
 			f--;
