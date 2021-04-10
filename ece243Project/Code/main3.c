@@ -20,12 +20,13 @@ bool drawVisual();
 void delay(int delayT);
 void callbackVisual(double velocityInitial, double theta);
 void callbackScore();
+double distance(int x1, int y1, int x2, int y2);
 
 struct Basketball{
 	int dy,dx, x, y, prevX, prevY, startX,startY;
 };
 struct Net{
-	int x, y, prevX, prevY;
+	int x, y, prevX, prevY, leftRimX, leftRimY, rightRimX, rightRimY;
 	bool score;
 };
 
@@ -593,8 +594,8 @@ int main(void)
 		}
 	}
 	while(1){
-	for(int theta = 40; theta < 80; theta+=10){
-		for(int velocity = 16 ;velocity < 22.1; velocity++){
+	for(int theta = 40; theta < 71; theta+=10){
+		for(int velocity = 17 ;velocity < 22.1; velocity++){
 			callbackVisual(velocity,theta);
 			eraseVisual(1);		
 		}
@@ -642,6 +643,9 @@ void callbackScore(){
 		}*/
 	}
 	
+}
+double distance(int x1, int y1, int x2, int y2){
+	return sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
 }
 void callbackVisual(double velocityInitial, double theta){
 	double velocity = velocityInitial;
@@ -725,6 +729,49 @@ void delay(int delayT){
 	}
 }
 void updateVisual(){
+	
+	game.basketball.prevX= game.basketball.x;
+	game.basketball.prevY=game.basketball.y;
+	
+	bool collisionX= false;
+	bool collisionY= false;
+	
+	// left rim
+	if(distance (game.basketball.x+BALL_DIAMETER/2 +game.basketball.dx, game.basketball.y +BALL_DIAMETER/2+game.basketball.dy , game.net.leftRimX, game.net.y + NET_OFFSET_Y) < BALL_DIAMETER/2 +2){
+		collisionX = true;
+		//outer rim 
+		if(game.basketball.x < game.net.leftRimX){
+			game.basketball.x = game.net.leftRimX - BALL_DIAMETER;
+			game.basketball.dx= -1* abs(game.basketball.dx/2);
+		}else{
+			//inner rim
+			collisionY=true;
+			game.basketball.x = game.net.leftRimX + BALL_DIAMETER +1;
+			game.basketball.y = game.net.y +NET_OFFSET_Y -1;
+			game.basketball.dx= abs(game.basketball.dx/2);
+		}
+		
+	}
+	// right rim
+	if(distance (game.basketball.x+BALL_DIAMETER/2 +game.basketball.dx, game.basketball.y +BALL_DIAMETER/2+game.basketball.dy , game.net.rightRimX, game.net.y + NET_OFFSET_Y) < BALL_DIAMETER/2 +1){
+		collisionX = true;
+		//inner irm
+		if(game.basketball.x < game.net.rightRimX){
+			collisionY=true;
+			printf("right rim1");
+			game.basketball.x = game.net.rightRimX - BALL_DIAMETER -1;
+			game.basketball.y = game.net.y +NET_OFFSET_Y -1;
+			game.basketball.dx= -1* abs(game.basketball.dx/2);
+			
+			
+			
+		}else{
+			game.basketball.x = game.net.rightRimX+ 1;
+			game.basketball.dx= abs(game.basketball.dx/2);
+		}
+		
+	}
+	
 	if (game.basketball.x >= RESOLUTION_X-BALL_DIAMETER)
 		game.basketball.dx= -1* abs(game.basketball.dx/1.5);
 	if (game.basketball.x <= 0)
@@ -737,12 +784,14 @@ void updateVisual(){
 	if(game.basketball.y +BALL_DIAMETER<RESOLUTION_Y){
 		game.basketball.dy+=1;
 	}
-	game.basketball.prevX= game.basketball.x;
-	game.basketball.prevY=game.basketball.y;
 	
-		
-	game.basketball.x+=game.basketball.dx;
-	game.basketball.y+=game.basketball.dy;
+	
+	if(!collisionX){
+		game.basketball.x+=game.basketball.dx;
+	}
+	if(!collisionY){
+		game.basketball.y+=game.basketball.dy;
+	}
 }
 void eraseVisual(int count){
 	if(count !=0){
@@ -772,7 +821,9 @@ void init_game(){
 	game.basketball.x=BALL_SPAWN_X;game.basketball.y= BALL_SPAWN_Y; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
 	game.basketball.startX = BALL_SPAWN_X; game.basketball.startY=BALL_SPAWN_Y;
 	
-	game.net.x= 275 - NET_OFFSET_X;game.net.y= 70 - NET_OFFSET_Y;game.net.prevX=0; game.net.prevY=0; game.net.score=false;
+	game.net.x= 275 - NET_OFFSET_X;game.net.y= 70 - NET_OFFSET_Y;game.net.prevX= game.net.x; game.net.prevY= game.net.y; game.net.score=false; 
+	game.net.rightRimX = game.net.x +NET_OFFSET_X + NET_DIAMETER/2 +1; game.net.leftRimX = game.net.x +NET_OFFSET_X - NET_DIAMETER/2;
+
 	
 	game.player.x=0; game.player.y=0;game.player.prevX=0;game.player.prevY=0;game.player.playerID=0;
 	
