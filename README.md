@@ -22,5 +22,7 @@ to play the game,
 
 9. Give keyboard inputs in the PS/2 keyboard or mouse IRQ 79 tab (on right side of screen)
 
-10. Enjoy!
+10. Score is displayed on the HEX display and current number of lives shown on LEDS.
+
+11. Try to beat your own highscore! Enjoy
  
