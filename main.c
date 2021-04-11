@@ -2903,7 +2903,7 @@ void updateVisual(){
 		
 	}
 	// right rim
-	if(distance (game.basketball.x+BALL_DIAMETER/2 +game.basketball.dx, game.basketball.y +BALL_DIAMETER/2+game.basketball.dy , game.net.rightRimX, game.net.y + NET_OFFSET_Y) < BALL_DIAMETER/2 +1){
+	if(distance (game.basketball.x+BALL_DIAMETER/2 +game.basketball.dx, game.basketball.y +BALL_DIAMETER/2+game.basketball.dy , game.net.rightRimX, game.net.y + NET_OFFSET_Y) < BALL_DIAMETER/2 +2){
 		collisionX = true;
 		//inner irm
 		if(game.basketball.x < game.net.rightRimX){
