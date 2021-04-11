@@ -1741,6 +1741,11 @@ int main(void)
 				
 				callbackVisual(game.powerBar.velocity,game.aimBar.angle);
 				eraseVisual(1);
+				// redraw rim original color in case its green
+				if(game.net.score){
+					draw_line(game.net.leftRimX, game.net.y+NET_OFFSET_Y, game.net.rightRimX+1, game.net.y+NET_OFFSET_Y, 64704);
+				}
+				
 				
 				break;
 
@@ -2835,6 +2840,10 @@ bool drawVisual(){
 		game.basketball.y = game.basketball.startY;
 		game.basketball.x = game.basketball.startX;
 		game.gameState=GAMESTATE_DIFFICULTY;
+		if(game.net.score){
+			draw_line(game.net.leftRimX, game.net.y+NET_OFFSET_Y, game.net.rightRimX+1, game.net.y+NET_OFFSET_Y,64704);
+		}
+		
 		return FALSE;
 	}
 	// code for drawing the boxes and lines (not shown)
@@ -2852,6 +2861,9 @@ bool drawVisual(){
 		}
 
 	}
+	if(game.net.score){
+			draw_line(game.net.leftRimX, game.net.y+NET_OFFSET_Y, game.net.rightRimX+1, game.net.y+NET_OFFSET_Y, GREEN);
+		}
 	// code for updating the locations of boxes (not shown)
 	
 	
