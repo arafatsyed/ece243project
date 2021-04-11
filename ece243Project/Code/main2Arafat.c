@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 #include <math.h>
 void set_A9_IRQ_stack ();
 void config_GIC ();
@@ -36,6 +37,14 @@ void drawPowerBar();
 void drawSlider();
 void eraseSlider();
 void callBackTiming();
+void callBackDifficulty();
+void eraseBasketballNet();
+void displayLives();
+void displayScore();
+void displayHighScore();
+
+
+
 double distance(int x1, int y1, int x2, int y2);
 
 struct Basketball{
@@ -75,6 +84,9 @@ struct Game{
 	struct AimBar aimBar;
 	uint16_t background[240][320];
 	int gameState;
+	int currentScore;
+	int highScore;
+	int lives;
 };
 //****************************************
 //END FUNCTION  HEADERS 
@@ -1645,8 +1657,13 @@ const uint16_t powerBar[70][10] = {
 
 };
 
+const int hexdisplay[10] = {0x3f,0x06,0x5b,0x4f,0x66,0x6d, 0x7d, 0x07, 0x7f, 0x67};
+
+
 volatile int * pixel_ctrl_ptr = (int *)0xFF203020;
 #define RLEDs ((volatile long *) 0xFF200000)
+#define HEX3_0 ((volatile long *) 0xFF200020)
+#define HEX4_5 ((volatile long *) 0xFF200030)
 
 int main(void)
 {	
@@ -1667,50 +1684,17 @@ int main(void)
 	/* set front pixel buffer to start of FPGA On-chip memory */
 	
   *(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
-                                        // back buffer
-    /* now, swap the front/back buffers, to set the front buffer location */
+
   wait_for_vsync();
-    /* initialize a pointer to the pixel buffer, used by drawing functions */
+   
   pixel_buffer_start = *pixel_ctrl_ptr;
-  //clear_screen(); // pixel_buffer_start points to the pixel buffer
-    /* set back pixel buffer to start of SDRAM memory */
+
   *(pixel_ctrl_ptr + 1) = 0xC0000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
- //clear_screen();
-	
-	// for(int y=0;y<240;y++){
-		// for(int x=0;x<320;x++){
-		
-			// plot_pixel(x,y,mainBackground[y][x]);
-		// }
-	// }
-	
-	// for(int y=150;y<230;y++){
-		// for(int x=0;x<70;x++){
-			// if(stephShootingModel[y-150][x]!=51168){
-				// plot_pixel(x,y,stephShootingModel[y-150][x]);
-			// }
-		// }
-	// }	
-    // /* set back pixel buffer to start of SDRAM memory */
-    // *(pixel_ctrl_ptr + 1) = 0xC0000000;
-    // pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
-	// clear_screen();
-	// for(int y=0;y<240;y++){
-		// for(int x=0;x<320;x++){
-		
-			// plot_pixel(x,y,mainBackground[y][x]);
-		// }
-	// }
-	
-	// for(int y=150;y<230;y++){
-		// for(int x=0;x<70;x++){
-			// if(stephShootingModel[y-150][x]!=51168){
-				// plot_pixel(x,y,stephShootingModel[y-150][x]);
-			// }
-		// }
-	// }
 
+	displayLives();
+	displayScore();
+	displayHighScore();
 	while(1){
 		
 		int x = game.gameState;
@@ -1762,6 +1746,10 @@ int main(void)
 
 			case GAMESTATE_DIFFICULTY:
 			
+				callBackDifficulty();
+				displayScore();
+				
+				displayLives();
 				break;
 			
 			case GAMESTATE_END:
@@ -1774,6 +1762,180 @@ int main(void)
 	}
 	
 }
+
+void displayHighScore(){
+	
+	if(game.currentScore> game.highScore){
+		
+		game.highScore = game.currentScore;
+		
+	}
+	int tens = game.highScore/10;
+	int ones = game.highScore%10;
+	
+	int displayHighScore = (hexdisplay[tens] << 8) | hexdisplay[ones];
+	
+	*(HEX4_5) = displayHighScore;
+	
+	
+}
+
+void displayScore(){
+	
+	int tens = game.currentScore/10;
+	int ones = game.currentScore%10;
+	
+	int displayNum = (hexdisplay[tens] << 8 ) | hexdisplay[ones];
+	*(HEX3_0) = displayNum;
+	
+	
+	
+}
+
+void displayLives(){
+	
+	if(game.lives == 3){
+		
+		*RLEDs = 7;
+		
+	}
+	if(game.lives == 2){
+		
+		*RLEDs = 3;
+	}
+	if(game.lives == 1){
+		
+		*RLEDs = 1;
+	}
+	if(game.lives<=0){
+		
+		*RLEDs = 0;
+	}
+	
+}
+//need to change net coordinates 
+void callBackDifficulty(){
+	
+	//if scored
+	if(game.net.score){
+		 
+		srand(time(0));
+		int newX;
+		int newY;
+		int prevX;
+		int prevY;
+		game.currentScore+=3;
+		*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+											// back buffer
+		/* now, swap the front/back buffers, to set the front buffer location */
+		wait_for_vsync();
+		/* initialize a pointer to the pixel buffer, used by drawing functions */
+		pixel_buffer_start = *pixel_ctrl_ptr;
+		//clear_screen(); // pixel_buffer_start points to the pixel buffer
+		
+		prevX =  game.net.x;
+		prevY = game.net.y;
+		
+		eraseBasketballNet();
+	
+	
+		newX = (rand()%(236 - 148 +1)) + 148;
+		newY = (rand()%(138 - 20 +1)) + 20;
+		
+		game.net.x = newX;
+		game.net.y = newY;
+		
+		drawBasketballNet();
+		
+		/* set back pixel buffer to start of SDRAM memory */
+		*(pixel_ctrl_ptr + 1) = 0xC0000000;
+		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+		//clear_screen();
+		
+		game.net.x = prevX;
+		game.net.y = prevY;		
+		eraseBasketballNet();
+		
+		game.net.x = newX;
+		game.net.y = newY;
+		drawBasketballNet();
+		
+		game.net.prevX = newX;
+		game.net.prevY = newY;
+		
+		game.gameState = GAMESTATE_ANGLE;
+		game.net.score = false;
+		
+		game.net.rightRimX = game.net.x +NET_OFFSET_X + NET_DIAMETER/2 +1; 
+		game.net.leftRimX = game.net.x +NET_OFFSET_X - NET_DIAMETER/2;	
+		
+	}else{
+		game.lives--;
+		//reset game if lives = 0
+		game.gameState = GAMESTATE_ANGLE;
+		
+		if(game.lives<=0){
+			displayHighScore();
+			game.gameState = GAMESTATE_ANGLE;
+			game.currentScore=0;
+			
+			int newX;
+			int newY;
+			int prevX;
+			int prevY;
+			
+			
+			*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
+												// back buffer
+			/* now, swap the front/back buffers, to set the front buffer location */
+			wait_for_vsync();
+			/* initialize a pointer to the pixel buffer, used by drawing functions */
+			pixel_buffer_start = *pixel_ctrl_ptr;
+			//clear_screen(); // pixel_buffer_start points to the pixel buffer
+			
+			prevX =  game.net.x;
+			prevY = game.net.y;
+			
+			eraseBasketballNet();
+		
+		
+			newX = 275-NET_OFFSET_X;
+			newY = 70 - NET_OFFSET_Y;
+			
+			game.net.x = newX;
+			game.net.y = newY;
+			
+			drawBasketballNet();
+			
+			/* set back pixel buffer to start of SDRAM memory */
+			*(pixel_ctrl_ptr + 1) = 0xC0000000;
+			pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
+			//clear_screen();
+			
+			game.net.x = prevX;
+			game.net.y = prevY;		
+			eraseBasketballNet();
+			
+			game.net.x = newX;
+			game.net.y = newY;
+			drawBasketballNet();
+			
+			game.net.prevX = newX;
+			game.net.prevY = newY;
+			
+			game.gameState = GAMESTATE_ANGLE;
+			game.net.score = false;	
+	
+			game.net.rightRimX = game.net.x +NET_OFFSET_X + NET_DIAMETER/2 +1; 
+			game.net.leftRimX = game.net.x +NET_OFFSET_X - NET_DIAMETER/2;	
+			game.lives = 3;
+			
+		}
+		
+	}
+	
+}
+
 void callBackTiming(){
 	
 	
@@ -1977,7 +2139,7 @@ void callBackPower(){
 			f--;
 			
 		}
-		
+
 		count = 1;
 		wait_for_vsync(); // swap front and back buffers on VGA vertical sync
 		pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer			
@@ -2227,6 +2389,20 @@ void eraseAngleBackground(){
 	
 }
 
+void eraseBasketballNet(){
+	
+	
+	for (int x =game.net.x  ; x< game.net.x+80 ;x++){
+		for (int y = game.net.y; y<game.net.y + 47; y++){
+			
+				plot_pixel(x,y,game.background[y][x]);
+							
+		}
+	}	
+	
+	
+	
+}
 void drawBasketballNet(){
 	
 	for (int x =game.net.x  ; x< game.net.x+80 ;x++){
@@ -2648,7 +2824,7 @@ void callbackVisual(double velocityInitial, double theta){
 		}
 		count++;
 	}
-	game.net.score =false;
+	
 }
 
 bool drawVisual(){
@@ -2658,7 +2834,7 @@ bool drawVisual(){
 	if(game.basketball.dy == 0 && game.basketball.dx ==0 && game.basketball.y +BALL_DIAMETER>=RESOLUTION_Y ){
 		game.basketball.y = game.basketball.startY;
 		game.basketball.x = game.basketball.startX;
-		game.gameState=GAMESTATE_ANGLE;
+		game.gameState=GAMESTATE_DIFFICULTY;
 		return FALSE;
 	}
 	// code for drawing the boxes and lines (not shown)
@@ -2780,6 +2956,11 @@ void eraseVisual(int count){
 
 void init_game(){
 	game.gameState = GAMESTATE_INTRO;
+	
+	game.currentScore = 0;
+	//player has 3 lives
+	game.lives = 3;
+	game.highScore = 0;
 	
 	game.basketball.x=BALL_SPAWN_X;game.basketball.y= BALL_SPAWN_Y; game.basketball.dy =0;game.basketball.dx=0; game.basketball.prevX=0; game.basketball.prevY=0;
 	game.basketball.startX = BALL_SPAWN_X; game.basketball.startY=BALL_SPAWN_Y;
