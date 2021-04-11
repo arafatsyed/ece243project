@@ -1,5 +1,5 @@
 # ece243project
-final project for ECE243 (computer organization) course
+Final project for ECE243 (computer organization) course. Assignment is to create a game in C that will be run on the DE1-SOC board. 
 
 to play the game,
 
