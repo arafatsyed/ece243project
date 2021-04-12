@@ -2776,7 +2776,7 @@ void callbackScore(){
 			m = dy/dx;
 			double intersectX = (game.net.y+NET_OFFSET_Y - (game.basketball.prevY+BALL_DIAMETER/2)+ m*game.basketball.prevX+BALL_DIAMETER/2)/m;
 
-				if (intersectX< game.net.x+NET_OFFSET_X+NET_DIAMETER/2.0 -1 && intersectX> game.net.x+NET_OFFSET_X-NET_DIAMETER/2.0 + 1){
+				if (intersectX<= game.net.x+NET_OFFSET_X+NET_DIAMETER/2.0  && intersectX>= game.net.x+NET_OFFSET_X-NET_DIAMETER/2.0 ){
 					game.basketball.dy = 1;
 					
 					if(game.basketball.dx < 0){
