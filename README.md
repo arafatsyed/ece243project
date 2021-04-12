@@ -5,7 +5,7 @@ To play the game,
 
 1. Download the file main.c
 
-2. Go to https://cpulator.01xz.net/
+2. Go to https://cpulator.01xz.net/?sys=arm-de1soc
 
 3. Select ARMv7 architecture
 
