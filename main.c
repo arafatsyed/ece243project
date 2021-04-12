@@ -2922,6 +2922,9 @@ void updateVisual(){
 			game.basketball.x = game.net.leftRimX + BALL_DIAMETER +1;
 			game.basketball.y = game.net.y +NET_OFFSET_Y -1;
 			game.basketball.dx= abs(game.basketball.dx/2);
+			game.net.score = true;
+			game.basketball.dy =1;
+			game.basketball.dx =1;
 		}
 		
 	}
@@ -2935,7 +2938,9 @@ void updateVisual(){
 			game.basketball.x = game.net.rightRimX - BALL_DIAMETER -1;
 			game.basketball.y = game.net.y +NET_OFFSET_Y -1;
 			game.basketball.dx= -1* abs(game.basketball.dx/2);
-			
+			game.net.score =true;
+			game.basketball.dy =1;
+			game.basketball.dx = -1;
 			
 			
 		}else{
