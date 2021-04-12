@@ -7,22 +7,23 @@ To play the game,
 
 2. Go to https://cpulator.01xz.net/?sys=arm-de1soc
 
-3. Select ARMv7 architecture
+3. Change language to c (next to compile and load button)
 
-4. Select ARMv7 DE1-SoC system
+![image](https://user-images.githubusercontent.com/55632837/114326509-256c6500-9b03-11eb-808e-49803b7429ba.png)
 
-5. Change language to c (next to compile and load button)
+4. Load in main.c
 
-6. Load in main.c
-
-7. Go to VGA pixel bugger tab (on the right side of screen), click on the arrow, select show in seperate box,
+5. Go to VGA pixel bugger tab (on the right side of screen), click on the arrow, select show in seperate box,
   set zoom to what you prefer.
+![image](https://user-images.githubusercontent.com/55632837/114326518-2f8e6380-9b03-11eb-9149-6dd39ed2ebe3.png)
 
-8. Compile the code and press continue
+6. Compile the code and press continue
 
-9. Give keyboard inputs in the PS/2 keyboard or mouse IRQ 79 tab (on right side of screen)
+7. Give keyboard inputs in the PS/2 keyboard or mouse IRQ 79 tab (on right side of screen)
+![image](https://user-images.githubusercontent.com/55632837/114326526-361cdb00-9b03-11eb-8399-cd3a567d4ee8.png)
 
-10. Score is displayed on the HEX display and current number of lives shown on LEDS.
+8. Score is displayed on the HEX display and current number of lives shown on LEDS.
+![image](https://user-images.githubusercontent.com/55632837/114326542-50ef4f80-9b03-11eb-9eb1-0b29c5f30d5c.png)
 
-11. Try to beat your own highscore! Enjoy
+9. Try to beat your own highscore! Enjoy
  
