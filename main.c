@@ -2110,13 +2110,17 @@ void callBackPower(){
 					wait_for_vsync();
 						/* initialize a pointer to the pixel buffer, used by drawing functions */
 					pixel_buffer_start = *pixel_ctrl_ptr;
-
+					
+					draw_line(game.powerBar.xSlider, game.powerBar.ySlider, game.powerBar.xSlider + 7, game.powerBar.ySlider, game.powerBar.powerBarArray[(game.powerBar.ySlider-POWERBAR_START_y)][(game.powerBar.xSlider+7) - (POWERBAR_START_X) -1]);
+					draw_line(game.powerBar.prevXSlider, game.powerBar.prevYSlider, game.powerBar.prevXSlider + 7, game.powerBar.prevYSlider, 0 );
 					//eraseSlider();
 					//drawSlider();
 						/* set back pixel buffer to start of SDRAM memory */
 					*(pixel_ctrl_ptr + 1) = 0xC0000000;
 					pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 					
+					draw_line(game.powerBar.xSlider, game.powerBar.ySlider, game.powerBar.xSlider + 7, game.powerBar.ySlider, game.powerBar.powerBarArray[(game.powerBar.ySlider-POWERBAR_START_y)][(game.powerBar.xSlider+7) - (POWERBAR_START_X) -1]);
+					draw_line(game.powerBar.prevXSlider, game.powerBar.prevYSlider, game.powerBar.prevXSlider + 7, game.powerBar.prevYSlider, 0 );					
 					//eraseSlider();
 					//drawSlider();
 					
@@ -2243,6 +2247,7 @@ void callBackAngle(){
 	int count =0;
 	int angleCounter = 0;
 	int angleDirection = 1;
+	int prevAngle = 0;
 	game.aimBar.xEnd = BALL_SPAWN_X +15  + game.aimBar.pointX[angleCounter];
 	game.aimBar.yEnd = BALL_SPAWN_Y - 30 + game.aimBar.pointY[angleCounter];	
 
@@ -2256,7 +2261,7 @@ void callBackAngle(){
 			draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
 			
 		}
-
+		prevAngle = angleCounter;
 		angleCounter+=angleDirection;
 		
 		game.aimBar.prevXEnd = game.aimBar.xEnd;
@@ -2301,7 +2306,23 @@ void callBackAngle(){
 											
 				game.gameState = GAMESTATE_POWER;
 				//sets angle
-				game.aimBar.angle = game.aimBar.angleArray[angleCounter];
+				//going up
+				if(prevAngle == 10){
+					prevAngle = 9;
+					
+				}
+				else if(prevAngle == -1){
+					
+					prevAngle = 0;
+				}
+				
+				if(angleDirection == 1){
+					game.aimBar.angle = game.aimBar.angleArray[prevAngle];
+				}
+				else{
+					game.aimBar.angle = game.aimBar.angleArray[prevAngle];					
+				}
+				
 				*(pixel_ctrl_ptr + 1) = 0xC8000000; // first store the address in the 
 															// back buffer
 				/* now, swap the front/back buffers, to set the front buffer location */
@@ -2309,15 +2330,17 @@ void callBackAngle(){
 						/* initialize a pointer to the pixel buffer, used by drawing functions */
 				pixel_buffer_start = *pixel_ctrl_ptr;
 				//clear_screen(); // pixel_buffer_start points to the pixel buffer
-						
-				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
-				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
+				
+				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 0xffff);
+				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 6447);
+				
 				/* set back pixel buffer to start of SDRAM memory */
 				*(pixel_ctrl_ptr + 1) = 0xC0000000;
 				pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 				//clear_screen();
-				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 0xffff);
-				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 6447);
+				draw_line(game.aimBar.xEnd, game.aimBar.yEnd, game.aimBar.xFixed + BALL_SPAWN_X +15, game.aimBar.yFixed  + (BALL_SPAWN_Y - 30) , 0xffff);
+				draw_line(game.aimBar.prevXEnd,game.aimBar.prevYEnd,game.aimBar.xFixed + (BALL_SPAWN_X +15) , game.aimBar.yFixed + (BALL_SPAWN_Y - 30), 6447);
+				
 				
 				while(1){
 						
