@@ -1,5 +1,6 @@
 # ece243project
 Disclaimer: Code is only for playing the game. Please do not copy and paste/use this code for school projects. 
+
 Final project for ECE243 (computer organization) course. Assignment is to create a game in C that will be run on the DE1-SOC board. 
 
 To play the game,
