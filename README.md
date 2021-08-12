@@ -2,13 +2,17 @@
 Disclaimer: Code is only for playing the game. Please do not copy and paste/use this code for school projects. 
 
 Preview:
+
 Multiple Characters!
+
 ![image](https://user-images.githubusercontent.com/55632837/129282751-ae18550b-bcb1-4797-91d0-775289c0a9ee.png)
 
 Realistic Phsyics, Hand Drawn Graphics, and Responsive Inputs!
+
 ![image](https://user-images.githubusercontent.com/55632837/129282842-faafd96e-50e8-4fd2-8dc2-8f0d79f8303f.png)
 
 Interactive Scoreboard!
+
 ![image](https://user-images.githubusercontent.com/55632837/129282937-b9d01267-7b0f-42f7-a83a-ab60c333752b.png)
 
 
