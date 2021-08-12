@@ -1,8 +1,8 @@
 # ece243project
 Disclaimer: Code is only for playing the game. Please do not copy and paste/use this code for school projects. 
 
-Preview:
-
+**Preview:
+**
 Multiple Characters!
 
 ![image](https://user-images.githubusercontent.com/55632837/129282751-ae18550b-bcb1-4797-91d0-775289c0a9ee.png)
@@ -18,8 +18,8 @@ Interactive Scoreboard!
 
 Final project for ECE243 (computer organization) course. Assignment is to create a game in C that will be run on the DE1-SOC board. 
 
-To play the game,
-
+**To play the game,
+**
 1. Download the file main.c
 
 2. Go to https://cpulator.01xz.net/?sys=arm-de1soc
