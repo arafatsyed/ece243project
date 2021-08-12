@@ -3,6 +3,7 @@ Disclaimer: Code is only for playing the game. Please do not copy and paste/use 
 
 **Preview:
 **
+
 Multiple Characters!
 
 ![image](https://user-images.githubusercontent.com/55632837/129282751-ae18550b-bcb1-4797-91d0-775289c0a9ee.png)
@@ -20,6 +21,7 @@ Final project for ECE243 (computer organization) course. Assignment is to create
 
 **To play the game,
 **
+
 1. Download the file main.c
 
 2. Go to https://cpulator.01xz.net/?sys=arm-de1soc
